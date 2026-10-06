@@ -1,4 +1,9 @@
-   <form action="/suggest" method="post" enctype="multipart/form-data">
-     <input type="file" name="photo" accept="image/*">
-     <button>Get recipes</button>
-   </form>
+<form action="/suggest" method="post" enctype="multipart/form-data">
+  <input type="file" name="photo" accept="image/*" required>
+  <select name="diet">
+    <option value="none">No restrictions</option>
+    <option value="vegetarian">Vegetarian</option>
+    <option value="vegan">Vegan</option>
+  </select>
+  <button>Get recipes</button>
+</form>

@@ -1,0 +1,9 @@
+<h1>Recipes for {{ filename }}</h1>
+{% for r in recipes %}
+  <div>
+    <h2>{{ r.name }} ({{ r.time }})</h2>
+    <ul>{% for i in r.ingredients %}<li>{{ i }}</li>{% endfor %}</ul>
+    <ol>{% for s in r.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+  </div>
+{% endfor %}
+<a href="/">Try another photo</a>
