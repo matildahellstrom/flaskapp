@@ -1,0 +1,26 @@
+<h1>Is this what's in your fridge?</h1>
+<p>One ingredient per line. Remove mistakes and add anything that's missing.</p>
+
+<form action="/suggest" method="post">
+  <textarea name="ingredients" rows="12" cols="30">{{ ingredients | join('\n') }}</textarea>
+
+  <p>
+    <label>Diet:
+      <select name="diet">
+        <option value="none">No restrictions</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+      </select>
+    </label>
+  </p>
+
+  <p>
+    <label>Use these first:
+      <input name="must_use" placeholder="e.g. spinach, milk">
+    </label>
+  </p>
+
+  <button>Get recipes</button>
+</form>
+
+<a href="/">Try another photo</a>

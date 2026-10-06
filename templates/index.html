@@ -1,9 +1,5 @@
-<form action="/suggest" method="post" enctype="multipart/form-data">
+<h1>What's in your fridge?</h1>
+<form action="/detect" method="post" enctype="multipart/form-data">
   <input type="file" name="photo" accept="image/*" required>
-  <select name="diet">
-    <option value="none">No restrictions</option>
-    <option value="vegetarian">Vegetarian</option>
-    <option value="vegan">Vegan</option>
-  </select>
-  <button>Get recipes</button>
+  <button>Find ingredients</button>
 </form>
