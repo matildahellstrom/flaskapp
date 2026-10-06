@@ -1,9 +1,20 @@
 <h1>Your recipes</h1>
-{% for r in recipes %}
-  <div>
-    <h2>{{ r.name }} ({{ r.time }})</h2>
-    <ul>{% for i in r.ingredients %}<li>{{ i }}</li>{% endfor %}</ul>
-    <ol>{% for s in r.steps %}<li>{{ s }}</li>{% endfor %}</ol>
-  </div>
-{% endfor %}
+
+<div style="display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start">
+  {% for r in results %}
+    <div style="flex:1; min-width:280px">
+      <h2>{{ r.model }}</h2>
+      <p>Took {{ r.seconds }} s</p>
+      {% if r.error %}
+        <p style="color:crimson">Error: {{ r.error }}</p>
+      {% endif %}
+      {% for recipe in r.output %}
+        <h3>{{ recipe.name }} ({{ recipe.time }})</h3>
+        <ul>{% for i in recipe.ingredients %}<li>{{ i }}</li>{% endfor %}</ul>
+        <ol>{% for s in recipe.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
 <a href="/">Try another photo</a>

@@ -1,8 +1,24 @@
-<h1>Is this what's in your fridge?</h1>
+<h1>What each model saw</h1>
+
+<div style="display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start">
+  {% for r in results %}
+    <div style="flex:1; min-width:220px">
+      <h2>{{ r.model }}</h2>
+      <p>{{ r.seconds }} s · {{ r.output | length }} ingredients</p>
+      {% if r.error %}
+        <p style="color:crimson">Error: {{ r.error }}</p>
+      {% else %}
+        <ul>{% for i in r.output %}<li>{{ i }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+<h2>Combined list</h2>
 <p>One ingredient per line. Remove mistakes and add anything that's missing.</p>
 
 <form action="/suggest" method="post">
-  <textarea name="ingredients" rows="12" cols="30">{{ ingredients | join('\n') }}</textarea>
+  <textarea name="ingredients" rows="12" cols="30">{{ merged | join('\n') }}</textarea>
 
   <p>
     <label>Diet:
@@ -20,7 +36,7 @@
     </label>
   </p>
 
-  <button>Get recipes</button>
+  <button>Get recipes from both models</button>
 </form>
 
 <a href="/">Try another photo</a>

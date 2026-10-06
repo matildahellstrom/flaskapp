@@ -1,4 +1,5 @@
 import json
+import time
 
 import ollama
 from flask import Flask, render_template, request
@@ -7,25 +8,22 @@ from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)
 
-MODEL = "gemma3:4b"
+MODELS = ["gemma3:4b", "qwen2.5vl:7b"]
 
-def ask_model(prompt, images=None):
+def ask_model(prompt, model, images=None):
     message = {"role": "user", "content": prompt}
     if images:
         message["images"] = images
-    response = ollama.chat(model=MODEL, messages=[message], format="json")
+    response = ollama.chat(model=model, messages=[message], format="json")
     return json.loads(response["message"]["content"])
 
-def detect_ingredients(photo):
+def detect_ingredients(image, model):
     prompt = """List the food ingredients you can see in this fridge photo.
 Only include items you are reasonably sure about. Use simple names like "eggs" or "cheddar".
 Respond ONLY with JSON: {"ingredients": ["", ""]}"""
-    try:
-        return ask_model(prompt, [photo.read()])["ingredients"]
-    except (json.JSONDecodeError, KeyError):
-        return []
+    return ask_model(prompt, model, [image])["ingredients"]
 
-def suggest_recipes(ingredients, prefs):
+def suggest_recipes(ingredients, prefs, model):
     prompt = f"""Available ingredients: {", ".join(ingredients)}.
 Assume basic pantry staples (oil, salt, pepper, flour) are also available.
 Diet: {prefs["diet"]}.
@@ -33,11 +31,24 @@ Try to use these first: {prefs["must_use"] or "no preference"}.
 Suggest 3 dishes using mainly the available ingredients.
 Respond ONLY with JSON in this format:
 {{"recipes": [{{"name": "", "time": "", "ingredients": [""], "steps": [""]}}]}}"""
-    try:
-        return ask_model(prompt)["recipes"]
-    except (json.JSONDecodeError, KeyError):
-        return [{"name": "Couldn't parse a response", "time": "",
-                 "ingredients": [], "steps": ["Try again"]}]
+    return ask_model(prompt, model)["recipes"]
+
+def compare(task, *args):
+    """Run the same task on every model, timing each one."""
+    results = []
+    for model in MODELS:
+        start = time.perf_counter()
+        try:
+            output, error = task(*args, model=model), None
+        except Exception as e:
+            output, error = [], str(e)
+        results.append({
+            "model": model,
+            "output": output,
+            "error": error,
+            "seconds": round(time.perf_counter() - start, 1),
+        })
+    return results
 
 @app.route("/")
 def index():
@@ -45,9 +56,13 @@ def index():
 
 @app.route("/detect", methods=["POST"])
 def detect():
-    photo = request.files["photo"]
-    ingredients = detect_ingredients(photo)
-    return render_template("confirm.html", ingredients=ingredients)
+    image = request.files["photo"].read()
+    results = compare(detect_ingredients, image)
+    # Combine both lists, remove duplicates, keep order
+    merged = list(dict.fromkeys(
+        item.strip().lower() for r in results for item in r["output"]
+    ))
+    return render_template("confirm.html", results=results, merged=merged)
 
 @app.route("/suggest", methods=["POST"])
 def suggest():
@@ -57,8 +72,8 @@ def suggest():
         "diet": request.form.get("diet", "none"),
         "must_use": request.form.get("must_use", "").strip(),
     }
-    recipes = suggest_recipes(ingredients, prefs)
-    return render_template("results.html", recipes=recipes)
+    results = compare(suggest_recipes, ingredients, prefs)
+    return render_template("results.html", results=results)
 
 if __name__ == "__main__":
     app.run(debug=True)
